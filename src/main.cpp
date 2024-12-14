@@ -15,18 +15,20 @@ Vector3 rand_bw(){
 
 void KuwaharaFilter(Image& a, Image& b, Vector2 canvSize){
     // Kuwahara filter
-    for(unsigned int i = 0; i < a.GetImageData().size(); i++){
+    std::vector<Vector3> data = a.GetImageData();
+
+    for(unsigned int i = 0; i < data.size(); i++){
         Vector3 result(0, 0, 0);
-        if(i + 1 <= a.GetImageData().size() && i + canvSize.m_x - 1 <= a.GetImageData().size() && i + canvSize.m_x <= a.GetImageData().size()){
-            result = Vector3::average(a.GetImageData()[i], a.GetImageData()[i + 1], a.GetImageData()[i + canvSize.m_x-1], a.GetImageData()[i + canvSize.m_x]);
+        if(i + 1 <= data.size() && i + canvSize.m_x - 1 <= data.size() && i + canvSize.m_x <= data.size()){
+            result = Vector3::average(data[i], data[i + 1], data[i + canvSize.m_x-1], data[i + canvSize.m_x]);
             b.WritePixel(result);
         }
-        else if (i +1 <= a.GetImageData().size()){
-            result = Vector3::average(a.GetImageData()[i], a.GetImageData()[i + 1], a.GetImageData()[i - canvSize.m_x+1], a.GetImageData()[i - canvSize.m_x]);
+        else if (i +1 <= data.size()){
+            result = Vector3::average(data[i], data[i + 1], data[i - canvSize.m_x+1], data[i - canvSize.m_x]);
             b.WritePixel(result);
         }
         else {
-            result = Vector3::average(a.GetImageData()[i], a.GetImageData()[i - 1], a.GetImageData()[i - canvSize.m_x-1], a.GetImageData()[i - canvSize.m_x]);
+            result = Vector3::average(data[i], data[i - 1], data[i - canvSize.m_x-1], data[i - canvSize.m_x]);
             b.WritePixel(result);
         }
         
@@ -83,12 +85,11 @@ int main(){
     KuwaharaFilter(bytewareLogo, b, bytewareLogo.GetResolution());
     KuwaharaFilter(b, c, bytewareLogo.GetResolution());
 
-    // Here you can export your images to the ppm format, KEEP IN MIND, calculating the filter AND exporting is computationially heavy on the cpu,
-    // so make sure you balance it carefully
+    // Here you can export your images to the ppm format
+    bytewareLogo.Export();
     a.Export();
     b.Export();
     c.Export();
-    bytewareLogo.Export();
 
     // if the make file isn't fixed by the time I send this out, then oh well, it's your problem now
 
