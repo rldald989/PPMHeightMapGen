@@ -3,7 +3,7 @@ OBJS = $(BIN_DIR)/main.o $(BIN_DIR)/Output.o $(BIN_DIR)/Vector2.o $(BIN_DIR)/Vec
 SOURCE = src/main.cpp src/Output.cpp headers/Vector/Vector2.cpp headers/Vector/Vector3.cpp headers/Matrix/Matrix2.cpp headers/Matrix/Matrix3.cpp
 HEADER = headers/Output.h headers/Vector/Vector2.h headers/Vector/Vector3.h headers/Matrix/Matrix2.h headers/Matrix/Matrix3.h
 OUT = $(BIN_DIR)/main.exe
-FLAGS = -g -c -Wall
+FLAGS = -g -c -std=c++17 -Wall -Wextra -O2
 LFLAGS = 
 CC = g++
 

@@ -15,12 +15,14 @@ class Image
 {
 private:
     std::string m_file_data;
+    std::string m_output_file_name;
     std::vector<Vector3> m_image_data;
     std::ofstream m_out;
     std::ifstream m_in;
     Vector2 m_resolution;
 public:
     Image(const char* output_file_name, Vector2 resolution);
+    Image(const Image& image);
     ~Image();
 
     void Init();

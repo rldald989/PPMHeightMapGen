@@ -1,6 +1,8 @@
 #include <iostream>
 #include "../headers/Output.h"
-#include <ctime>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 Vector3 rand_bw(){
     float r = (float)(std::rand() % 10) / 10;
@@ -13,26 +15,38 @@ Vector3 rand_bw(){
     return Vector3(r, r, r);
 }
 
-void KuwaharaFilter(Image& a, Image& b, Vector2 canvSize){
-    // Kuwahara filter
+void BlurFilter(Image& a, Image& b, Vector2 canvSize){
     std::vector<Vector3> data = a.GetImageData();
 
     for(unsigned int i = 0; i < data.size(); i++){
         Vector3 result(0, 0, 0);
         if(i + 1 <= data.size() && i + canvSize.m_x - 1 <= data.size() && i + canvSize.m_x <= data.size()){
             result = Vector3::average(data[i], data[i + 1], data[i + canvSize.m_x-1], data[i + canvSize.m_x]);
-            b.WritePixel(result);
         }
         else if (i +1 <= data.size()){
             result = Vector3::average(data[i], data[i + 1], data[i - canvSize.m_x+1], data[i - canvSize.m_x]);
-            b.WritePixel(result);
         }
         else {
             result = Vector3::average(data[i], data[i - 1], data[i - canvSize.m_x-1], data[i - canvSize.m_x]);
-            b.WritePixel(result);
+            
         }
-        
+        b.WritePixel(result);
     }
+}
+
+Image QuadraBlur(Image& a, const char* output_file, Vector2 canvSize){
+    Image b("b.ppm", canvSize);
+    Image q("q.ppm", canvSize);
+    Image r("r.ppm", canvSize);
+    Image s(output_file, canvSize);
+    s.Init();
+
+    BlurFilter(a, b, canvSize);
+    BlurFilter(b, q, canvSize);
+    BlurFilter(q, r, canvSize);
+    BlurFilter(r, s, canvSize);
+
+    return s;
 }
 
 void ContrastFilter(Image& a, Image& b){
@@ -47,51 +61,34 @@ void ContrastFilter(Image& a, Image& b){
 int main(){
     srand(time(0));
 
+    clock_t start = clock();
+
     //This is where the stuff needed to define the canvas size is
     std::string input;
 
     Vector2 canvSize(8, 8);
 
-    // With how this is currently set up, you WILL have to set it to 128 when you run the program, otherwise you might run into problems
-    std::cout << "Canvas Width: ";
-    std::cin >> input;
-    canvSize.m_x = std::atoi(input.c_str());
-    input.clear();
-    std::cout << "Canvas Height: ";
-    std::cin >> input;
-    canvSize.m_y = std::atoi(input.c_str());
-
     // You can define an image, give it an output directory, and input the canvas size
     // You have to call Init(), otherwise the format won't be recognized by any software that can display it(trust me, there is a reason why
     // init is it's own thing and not just the constructor)
     Image a("output.ppm", canvSize);
-    a.Init();
-    Image b("kuwahara.ppm", canvSize);
-    b.Init();
-    Image c("kuwaharaDouble.ppm", canvSize);
-    c.Init();
-    Image bytewareLogo("bwLogo.ppm", canvSize);
+    Image im("AVCh.ppm", canvSize);
     
     // This is just a loop that randomly writes black and white pixels to an image, WritePixel is really easy to use,
     // All you have to do is either put a value 0-1 * 255, or just pick a value within the 255 range.(you do this for each value as it defines the color of the pixel)
     for(int i = 0; i < canvSize.m_x * canvSize.m_y; i++){
-        a.WritePixel(rand_bw() * 255);
+        a.WritePixel(Vector3::rand() * 255);
     }
 
-    // This allows you to Load an image, just define the directory where it's located, and boom, you can use that image
-    bytewareLogo.Load("img/BWIcon.ppm");
-
-    // This is incorrectly named, it is NOT a kuwahara filter, but a box blur(probably)
-    KuwaharaFilter(bytewareLogo, b, bytewareLogo.GetResolution());
-    KuwaharaFilter(b, c, bytewareLogo.GetResolution());
+    im.Load("img/AVYCharacter.ppm");
+    Image q_blur = QuadraBlur(im, "outputBlur.ppm", im.GetResolution());
 
     // Here you can export your images to the ppm format
-    bytewareLogo.Export();
-    a.Export();
-    b.Export();
-    c.Export();
+    q_blur.Export();
 
-    // if the make file isn't fixed by the time I send this out, then oh well, it's your problem now
+    clock_t end = clock();
+    float duration = float(end - start) / CLOCKS_PER_SEC;
 
+    std::cout << duration << std::endl;
     return 0;
 }

@@ -1,16 +1,20 @@
 #include "../headers/Output.h"
 
-Image::Image(const char *output_file_name, Vector2 resolution) : m_out(output_file_name), m_resolution(resolution)
+Image::Image(const char *output_file_name, Vector2 resolution) : m_resolution(resolution), m_output_file_name(output_file_name)
 {
    
 }
 
+Image::Image(const Image& image) : m_out(image.m_output_file_name), m_resolution(image.m_resolution), m_output_file_name(image.m_output_file_name)
+{
+}
 Image::~Image()
 {
 }
 
 void Image::Init()
 {
+    m_out.open(m_output_file_name);
     m_file_data += "P3\n" + std::to_string((int)m_resolution.m_x) + " " + std::to_string((int)m_resolution.m_y) + "\n255\n";
 }
 
