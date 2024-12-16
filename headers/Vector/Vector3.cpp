@@ -13,7 +13,7 @@ Vector3 Vector3::operator+(const Vector3 &other)
     return Vector3(x + other.x, y + other.y, z + other.z);
 }
 
-Vector3 Vector3::operator+(const float &other)
+Vector3 Vector3::operator+(const float& other)
 {
     return Vector3(x + other, y + other, z + other);
 }
@@ -38,9 +38,14 @@ Vector3 Vector3::operator/(const Vector3 &other)
     return Vector3(x * other.x, y * other.y, z * other.z);
 }
 
-Vector3 Vector3::operator/(const float &other)
+Vector3 Vector3::operator/(const float& other)
 {
     return Vector3(x / other, y / other, z / other);
+}
+
+bool Vector3::operator==(const Vector3 &other) const
+{
+    return (x == other.x && y == other.y && z == other.z);
 }
 
 float Vector3::dot(Vector3 &other)

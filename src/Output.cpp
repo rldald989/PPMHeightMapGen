@@ -78,6 +78,35 @@ void Image::Load(const char *image_path)
     counter = 0;
 }
 
+Image Image::Mix(Image &a, Image &b)
+{
+    Image temp(b.m_output_file_name.c_str(), b.m_resolution);
+    temp.Init();
+    Vector3 temp_col(0, 0, 0);
+    for (int i = 0; i < a.m_image_data.size(); i++)
+    {
+        temp_col = (a.m_image_data[i] + b.m_image_data[i]);
+        if(!(a.m_image_data[i] == temp_col) || !(b.m_image_data[i] == temp_col)){
+            temp_col = (a.m_image_data[i] + b.m_image_data[i]) / 2;
+        }
+        temp.WritePixel(temp_col);
+    }
+    
+    return temp;
+}
+Image Image::operator+(const Image &other)
+{
+    Image temp(other.m_output_file_name.c_str(), other.m_resolution);
+    temp.Init();
+    Vector3 temp_col(0, 0, 0);
+    for (int i = 0; i < m_image_data.size(); i++)
+    {
+        temp_col = m_image_data[i]+ other.m_image_data[i];
+        temp.WritePixel(temp_col);
+    }
+    
+    return temp;
+}
 Vector2 Image::GetResolution()
 {
     return m_resolution;

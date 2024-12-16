@@ -35,6 +35,10 @@ public:
 
     void Load(const char* image_path);
 
+    static Image Mix(Image& a, Image& b);
+
+    Image operator+(const Image& other);
+
     Vector2 GetResolution();
 
     std::vector<Vector3> GetImageData();

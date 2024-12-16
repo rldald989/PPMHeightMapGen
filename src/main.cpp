@@ -15,23 +15,98 @@ Vector3 rand_bw(){
     return Vector3(r, r, r);
 }
 
-void BlurFilter(Image& a, Image& b, Vector2 canvSize){
+Image BlurFilter(Image& a, const char* outputFile, Vector2 canvSize){
     std::vector<Vector3> data = a.GetImageData();
-
+    Image b(outputFile, canvSize);
+    b.Init();
     for(unsigned int i = 0; i < data.size(); i++){
         Vector3 result(0, 0, 0);
-        if(i + 1 <= data.size() && i + canvSize.m_x - 1 <= data.size() && i + canvSize.m_x <= data.size()){
-            result = Vector3::average(data[i], data[i + 1], data[i + canvSize.m_x-1], data[i + canvSize.m_x]);
-        }
-        else if (i +1 <= data.size()){
-            result = Vector3::average(data[i], data[i + 1], data[i - canvSize.m_x+1], data[i - canvSize.m_x]);
-        }
-        else {
-            result = Vector3::average(data[i], data[i - 1], data[i - canvSize.m_x-1], data[i - canvSize.m_x]);
-            
+        if(i - canvSize.m_x - 1 > 0
+            && i + canvSize.m_x + 1 < data.size()
+            ){
+            result = Vector3::average
+            (
+                data[i], 
+                data[i + 1], 
+                data[i - 1], 
+
+                data[i + canvSize.m_x + 1],
+                data[i + canvSize.m_x],
+                data[i + canvSize.m_x - 1],
+
+                data[i - canvSize.m_x - 1],
+                data[i - canvSize.m_x],
+                data[i - canvSize.m_x + 1]
+            );
         }
         b.WritePixel(result);
     }
+    return b;
+}
+
+void BlurFilter(Image& a, Image& b, Vector2 canvSize){
+    std::vector<Vector3> data = a.GetImageData();
+    for(unsigned int i = 0; i < data.size(); i++){
+        Vector3 result(0, 0, 0);
+        if(i - canvSize.m_x - 1 > 0
+            && i + canvSize.m_x + 1 < data.size()
+            ){
+            result = Vector3::average
+            (
+                data[i], 
+                data[i + 1], 
+                data[i - 1], 
+
+                data[i + canvSize.m_x + 1],
+                data[i + canvSize.m_x],
+                data[i + canvSize.m_x - 1],
+
+                data[i - canvSize.m_x - 1],
+                data[i - canvSize.m_x],
+                data[i - canvSize.m_x + 1]
+            );
+        }
+        b.WritePixel(result);
+    }
+}
+
+Image AAFilter(Image& a, const char* file_name, Vector3& bgColor, Vector2 canvSize){
+    std::vector<Vector3> data = a.GetImageData();
+    Image b(file_name, canvSize);
+    b.Init();
+    Vector2 pixel_position(0, 0);
+    for(unsigned int i = 0; i < data.size(); i++){
+        Vector3 result(0, 0, 0);
+
+        if (pixel_position.m_x >= canvSize.m_x) {
+            pixel_position.m_x = 0; // Reset to start of the row
+            pixel_position.m_y++;
+        }
+
+        if (i > 0 && i < data.size() - 1 &&
+            (i - 1) >= 0 
+            && (i + 1) < data.size() 
+            && (i - (canvSize.m_x * pixel_position.m_y) - 1) >= 0 
+            && (i + (canvSize.m_x * pixel_position.m_y) + 1) < data.size() 
+            && data[i+1] == bgColor 
+            && data[i - (canvSize.m_x * pixel_position.m_y) + 1] == bgColor)
+        {
+            result = Vector3::average(data[i], data[i - 1], data[i + 1], data[i - (canvSize.m_x * pixel_position.m_y) - 1], data[i + (canvSize.m_x * pixel_position.m_y) + 1]);
+        }
+        if (i > 0 && i < data.size() - 1  &&
+            (i - 1) >= 0 
+            && (i + 1) < data.size() 
+            && (i - (canvSize.m_x * pixel_position.m_y) - 1) >= 0 
+            && (i + (canvSize.m_x * pixel_position.m_y) + 1) < data.size() 
+            && data[i - 1] == bgColor 
+            && data[i + (canvSize.m_x * pixel_position.m_y) - 1] == bgColor)
+        {
+            result = Vector3::average(data[i], data[i - 1], data[i + 1], data[i - (canvSize.m_x * pixel_position.m_y) - 1], data[i + (canvSize.m_x * pixel_position.m_y) + 1]);
+        }
+
+        b.WritePixel(result);
+    }
+    return b;
 }
 
 Image QuadraBlur(Image& a, const char* output_file, Vector2 canvSize){
@@ -58,34 +133,74 @@ void ContrastFilter(Image& a, Image& b){
     }
 }
 
+void WriteCircle(Image& b, Vector2 position, Vector3 color, float size, Vector2& canvSize){
+    Vector2 pixel_position(0, 0);
+    Vector2 c_pos(0, 0);
+    for(int i = 0; i < canvSize.m_x * canvSize.m_y; i++){
+        if(pixel_position.m_x > canvSize.m_x){
+            pixel_position.m_y++;
+        }
+        pixel_position.m_x = i - (canvSize.m_x * pixel_position.m_y);
+
+        if(Vector2::distance(pixel_position, position) <= size){
+            b.WritePixel(color * 255);
+        }
+        else{
+            b.WritePixel(Vector3(0, 0, 0));
+        }
+    }
+}
+
 int main(){
     srand(time(0));
 
-    clock_t start = clock();
+    
 
     //This is where the stuff needed to define the canvas size is
     std::string input;
 
     Vector2 canvSize(8, 8);
 
+    //Width
+    std::cout << "Width: ";
+    std::cin >> input;
+    canvSize.m_x = std::atoi(input.c_str());
+    input.clear();
+    //Height
+    std::cout << "Height: ";
+    std::cin >> input;
+    canvSize.m_y = std::atoi(input.c_str());
+
+    Vector2 center(canvSize.m_x / 2, canvSize.m_y / 2);
+
+    // Clock should start only BEFORE processing and AFTER setup, otherwise it factors in setup time
+    clock_t start = clock();
+
     // You can define an image, give it an output directory, and input the canvas size
     // You have to call Init(), otherwise the format won't be recognized by any software that can display it(trust me, there is a reason why
     // init is it's own thing and not just the constructor)
-    Image a("output.ppm", canvSize);
-    Image im("AVCh.ppm", canvSize);
-    
-    // This is just a loop that randomly writes black and white pixels to an image, WritePixel is really easy to use,
-    // All you have to do is either put a value 0-1 * 255, or just pick a value within the 255 range.(you do this for each value as it defines the color of the pixel)
-    for(int i = 0; i < canvSize.m_x * canvSize.m_y; i++){
-        a.WritePixel(Vector3::rand() * 255);
-    }
+    Image circle_a("circle.ppm", canvSize);
+    Image circle_b("circle.ppm", canvSize);
+    Image avCh("avCH.ppm", canvSize);
 
-    im.Load("img/AVYCharacter.ppm");
-    Image q_blur = QuadraBlur(im, "outputBlur.ppm", im.GetResolution());
+    WriteCircle(circle_a, center, Vector3(0, 0, 1), canvSize.m_x/4, canvSize);
+    WriteCircle(circle_b, center + 50.0f, Vector3(1, 0, 0), canvSize.m_x/6, canvSize);
 
+    Vector3 black(0, 0, 0);
+
+    Image circleAA_a = AAFilter(circle_a, "circle.ppm", black, canvSize); 
+    Image circleAA_b = AAFilter(circle_b, "circle.ppm", black, canvSize); 
+
+    avCh.Load("img/AVYCharacter.ppm");
+    Image circle_comb = Image::Mix(circle_a, circle_b);
+    Image img_comb = Image::Mix(circle_comb, avCh);
+
+    Image circleBlur = QuadraBlur(img_comb, "circleBlurred.ppm", canvSize);
     // Here you can export your images to the ppm format
-    q_blur.Export();
+    circle_comb.Export();
+    circleBlur.Export();
 
+    // Prints the execution time
     clock_t end = clock();
     float duration = float(end - start) / CLOCKS_PER_SEC;
 

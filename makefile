@@ -32,4 +32,5 @@ $(OBJS): | $(BIN_DIR)
 
 # Clean rule
 clean:
-	rm -f $(OBJS) $(OUT)
+	del bin\*.o
+	del bin\*.exe

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <cmath>
+#include <math.h>
 
 class Vector3
 {
@@ -21,6 +23,7 @@ public:
     Vector3 operator*(const float& other);
     Vector3 operator/(const Vector3& other);
     Vector3 operator/(const float& other);
+    bool operator==(const Vector3& other) const;
 
     float dot(Vector3& other);
     Vector3 cross(Vector3& other);
