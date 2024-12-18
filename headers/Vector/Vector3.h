@@ -19,6 +19,7 @@ public:
     Vector3 operator+(const Vector3& other);
     Vector3 operator+(const float& other);
     Vector3 operator-(const Vector3& other);
+    Vector3 operator-(const float& other);
     Vector3 operator*(const Vector3& other);
     Vector3 operator*(const float& other);
     Vector3 operator/(const Vector3& other);
@@ -29,6 +30,7 @@ public:
     Vector3 cross(Vector3& other);
 
     static Vector3 rand();
+    static Vector3 sqrt(const Vector3& a);
 
     template <typename... Args>
     static Vector3 average(Args... args);

@@ -151,6 +151,25 @@ void WriteCircle(Image& b, Vector2 position, Vector3 color, float size, Vector2&
     }
 }
 
+void WriteCircleMask(Image& a, Image& masked_image, Vector2 position, Vector3 color, float size, Vector2& canvSize){
+    Vector2 pixel_position(0, 0);
+    Vector2 c_pos(0, 0);
+    std::vector<Vector3> data = masked_image.GetImageData();
+    for(int i = 0; i < canvSize.m_x * canvSize.m_y; i++){
+        if(pixel_position.m_x > canvSize.m_x){
+            pixel_position.m_y++;
+        }
+        pixel_position.m_x = i - (canvSize.m_x * pixel_position.m_y);
+
+        if(Vector2::distance(pixel_position, position) <= size){
+            a.WritePixel((data[i] + (color * 255)) / 2);
+        }
+        else{
+            a.WritePixel(Vector3(0, 0, 0));
+        }
+    }
+}
+
 int main(){
     srand(time(0));
 
@@ -179,23 +198,29 @@ int main(){
     // You can define an image, give it an output directory, and input the canvas size
     // You have to call Init(), otherwise the format won't be recognized by any software that can display it(trust me, there is a reason why
     // init is it's own thing and not just the constructor)
+    Image noise("noise.ppm", canvSize);
     Image circle_a("circle.ppm", canvSize);
     Image circle_b("circle.ppm", canvSize);
     Image avCh("avCH.ppm", canvSize);
 
-    WriteCircle(circle_a, center, Vector3(0, 0, 1), canvSize.m_x/4, canvSize);
-    WriteCircle(circle_b, center + 50.0f, Vector3(1, 0, 0), canvSize.m_x/6, canvSize);
+    for(int i = 0; i < canvSize.m_x * canvSize.m_y; i++)
+    {
+        noise.WritePixel(rand_bw() * 255);
+    }
+
+    avCh.Load("img/AVYCharacter.ppm");
+    WriteCircle(circle_a, center, Vector3(1, 1, 1), canvSize.m_x/4, canvSize);
+    WriteCircleMask(circle_b, avCh, center + 50.0f, Vector3(1, 1, 1), canvSize.m_x/6, canvSize);
 
     Vector3 black(0, 0, 0);
 
     Image circleAA_a = AAFilter(circle_a, "circle.ppm", black, canvSize); 
     Image circleAA_b = AAFilter(circle_b, "circle.ppm", black, canvSize); 
 
-    avCh.Load("img/AVYCharacter.ppm");
     Image circle_comb = Image::Mix(circle_a, circle_b);
     Image img_comb = Image::Mix(circle_comb, avCh);
 
-    Image circleBlur = QuadraBlur(img_comb, "circleBlurred.ppm", canvSize);
+    Image circleBlur = QuadraBlur(circle_comb, "circleBlurred.ppm", canvSize);
     // Here you can export your images to the ppm format
     circle_comb.Export();
     circleBlur.Export();

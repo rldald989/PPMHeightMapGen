@@ -23,6 +23,11 @@ Vector3 Vector3::operator-(const Vector3 &other)
     return Vector3(x - other.x, y - other.y, z - other.z);
 }
 
+Vector3 Vector3::operator-(const float &other)
+{
+    return Vector3(x - other, y - other, z - other);
+}
+
 Vector3 Vector3::operator*(const Vector3 &other)
 {
     return Vector3(x * other.x, y * other.y, z * other.z);
@@ -65,6 +70,11 @@ Vector3 Vector3::cross(Vector3 &other)
 Vector3 Vector3::rand()
 {
     return Vector3(float(std::rand() % 100)/ 100, float(std::rand() % 100)/ 100, float(std::rand() % 100)/ 100);
+}
+
+Vector3 Vector3::sqrt(const Vector3 &a)
+{
+    return Vector3(sqrtf(a.x), sqrtf(a.y), sqrtf(a.z));
 }
 
 std::string Vector3::to_string_f(Vector3 a)
